@@ -18,7 +18,9 @@ A cinematic automotive design study with interactive finishes and detail explora
 
 - Four visual grading treatments on one original render
 - Three detail views with accessible pressed states
-- JSON export of selected finish and detail
+- Original/result comparison with three deterministic learning steps: source → color → detail
+- Existing atelier controls update the live comparison, filter, crop scale and origin
+- JSON export includes selected finish, detail and exact CSS/cropping parameters
 - Responsive editorial layout and reduced-motion support
 
 ## Run locally
@@ -37,7 +39,13 @@ Open http://localhost:8000. Opening index.html directly as file:// is not suppor
 npm run check
 ```
 
-Checks cover local links, unique HTML IDs, JavaScript syntax and relevant state/export contracts. This is not a browser-rendering certification.
+Checks cover local links, unique HTML IDs, JavaScript syntax and a DOM interaction harness for the transformation steps, comparison synchronization and downloadable settings. This is not a browser-rendering certification.
+
+## Learn the transformation
+
+Open [the process section](https://safal207.github.io/vesper-automotive-concept/#process). The left image stays unchanged. The three buttons set an unmodified source, a bronze color grade, and a crop of the rear light; the right image and atelier update together. Filter, scale and transform origin are shown beside the result. Manual atelier selections also update the comparison.
+
+The initial image was generated with AI beforehand. The browser uses ordinary CSS filters and scaling on that one image; it does not run AI generation, construct a new camera angle, or change vehicle geometry. JSON export records reproducible settings, not an image file.
 
 ## Scope and limitations
 

@@ -1,6 +1,48 @@
-const finishes={silver:{name:'Champagne silver',description:'Тёплые отражения на серебристой поверхности.',filter:'none'},bronze:{name:'Satin bronze',description:'Медные полутона и мягкий закатный свет.',filter:'sepia(.7) saturate(.85) brightness(.88)'},graphite:{name:'Obsidian graphite',description:'Глубокий графит с тонкой линией отражений.',filter:'grayscale(.85) brightness(.65) contrast(1.15)'},cool:{name:'Glacier metal',description:'Холодный металл в спокойном голубом свете.',filter:'sepia(.16) hue-rotate(160deg) saturate(.55)'}};
-const views={silhouette:{title:'01 / Общий силуэт',scale:1,origin:'70% 55%',copy:'Низкая линия крыши и широкие задние плечи соединены одним непрерывным объёмом.'},canopy:{title:'02 / Стеклянная крыша',scale:2.25,origin:'61% 32%',copy:'Стеклянная поверхность продолжает линию кузова. Визуальный ритм сохраняется от передней стойки до задней кромки.'},light:{title:'03 / Световая подпись',scale:2.05,origin:'83% 54%',copy:'Янтарная полоса связывает задние плечи и подчёркивает ширину. Один акцент собирает всю композицию.'}};
-let finish='silver',view='silhouette';const q=s=>document.querySelector(s);
-function update(){const f=finishes[finish],v=views[view];q('#car').style.filter=f.filter;q('#detail-image').style.filter=f.filter;q('#detail-image').style.transform=`scale(${v.scale})`;q('#detail-image').style.transformOrigin=v.origin;q('#finish-name').textContent=f.name;q('#finish-description').textContent=f.description;q('#view-label').textContent=v.title;q('#detail-copy').textContent=v.copy;document.querySelectorAll('[data-finish]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.finish===finish));document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===view));}
-document.querySelectorAll('[data-finish]').forEach(b=>b.addEventListener('click',()=>{finish=b.dataset.finish;update()}));document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;update()}));
-q('#save').addEventListener('click',()=>{const data={project:'VESPER / 01',type:'fictional visual study',finish:finishes[finish].name,detail:views[view].title,cssFilter:finishes[finish].filter,source:'https://github.com/safal207/vesper-automotive-concept'};const u=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=u;a.download='vesper-my-study.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);q('#notice').textContent='Ваш этюд сохранён в JSON';q('#notice').classList.add('show');setTimeout(()=>q('#notice').classList.remove('show'),3500)});
+import {finishes,views,steps,stateAtStep,createStudyExport} from './study.js?v=3';
+
+let finish='silver',view='silhouette',activeStep='source';
+const q=s=>document.querySelector(s);
+
+function update(){
+  const f=finishes[finish],v=views[view];
+  q('#car').style.filter=f.filter;
+  for(const selector of ['#detail-image','#process-result']){
+    const picture=q(selector);
+    picture.style.filter=f.filter;
+    picture.style.transform=`scale(${v.scale})`;
+    picture.style.transformOrigin=v.origin;
+  }
+  q('#finish-name').textContent=f.name;
+  q('#finish-description').textContent=f.description;
+  q('#view-label').textContent=v.title;
+  q('#detail-copy').textContent=v.copy;
+  document.querySelectorAll('[data-finish]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.finish===finish));
+  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===view));
+  document.querySelectorAll('[data-process-step]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.processStep===activeStep));
+  q('#process-title').textContent=activeStep?steps[activeStep].title:'Ваш вариант / из ателье';
+  q('#process-copy').textContent=activeStep?steps[activeStep].copy:'Сравните свой вариант справа с неизменным исходником слева. Цвет и кадрирование синхронизированы с ателье; параметры ниже показывают точные изменения.';
+  q('#process-filter').textContent=f.filter;
+  q('#process-scale').textContent=`${v.scale.toLocaleString('ru-RU')}×`;
+  q('#process-origin').textContent=v.origin;
+  q('#result-label').textContent=`${f.name} · ${v.title.slice(5)}`;
+  q('#process-result').alt=`Текущий результат: ${f.name}, ${v.title.slice(5)}, масштаб ${v.scale}`;
+}
+
+document.querySelectorAll('[data-finish]').forEach(b=>b.addEventListener('click',()=>{finish=b.dataset.finish;activeStep=null;update()}));
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{view=b.dataset.view;activeStep=null;update()}));
+document.querySelectorAll('[data-process-step]').forEach(b=>b.addEventListener('click',()=>{
+  activeStep=b.dataset.processStep;
+  ({finish,view}=stateAtStep(activeStep));
+  update();
+}));
+
+function save(){
+  const u=URL.createObjectURL(new Blob([JSON.stringify(createStudyExport(finish,view),null,2)],{type:'application/json'}));
+  const a=document.createElement('a');a.href=u;a.download='vesper-my-study.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),1500);
+  q('#notice').textContent='Настройки этюда сохранены в JSON';q('#notice').classList.add('show');
+  setTimeout(()=>q('#notice').classList.remove('show'),3500);
+}
+q('#save').addEventListener('click',save);
+q('#process-save').addEventListener('click',save);
+update();
